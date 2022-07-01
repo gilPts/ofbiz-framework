@@ -50,7 +50,7 @@ ruleset {
     ThrowExceptionFromFinallyBlock // Throwing an exception from a finally block is confusing and can hide the original exception.
 
     // rulesets/braces.xml
-    ElseBlockBraces
+    ElseBlockBraces // Use braces for else blocks, even for a single statement. By default, braces are not required for an else if it is followed immediately by an if. Set the bracesRequiredForElseIf property to true to require braces is that situation as well.
     ForStatementBraces
     IfStatementBraces
     WhileStatementBraces

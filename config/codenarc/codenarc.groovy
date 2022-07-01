@@ -51,7 +51,7 @@ ruleset {
 
     // rulesets/braces.xml
     ElseBlockBraces // Use braces for else blocks, even for a single statement. By default, braces are not required for an else if it is followed immediately by an if. Set the bracesRequiredForElseIf property to true to require braces is that situation as well.
-    ForStatementBraces
+    ForStatementBraces // Use braces for for statements, even for a single statement.
     IfStatementBraces
     WhileStatementBraces
 

@@ -33,7 +33,7 @@ def getCustomScreenTemplate(String entityTypeName, String fieldTypeValue) {
     if (! fieldTypeValue) {
         return null
     }
-    GenericValue tplCustScreen = from("PartyPrefDocTypeTplAndCustomScreen")
+    GenericValue tplCustScreen = from('PartyPrefDocTypeTplAndCustomScreen')
             .where(getFieldTypeName(entityTypeName), fieldTypeValue)
             .cache()
             .queryFirst()
@@ -46,15 +46,15 @@ def getCustomScreenTemplate(String entityTypeName, String fieldTypeValue) {
 }
 
 // first resolve the document reference passed on the context
-String entityName = ""
-String entityTypeName = ""
+String entityName = ''
+String entityTypeName = ''
 if (parameters.orderId) {
-    entityName = "OrderHeader"
-    entityTypeName = "OrderType"
+    entityName = 'OrderHeader'
+    entityTypeName = 'OrderType'
 } else if (parameters.invoiceId) {
-    entityName ="Invoice"
+    entityName ='Invoice'
 } else if (parameters.quoteId) {
-    entityName = "Quote"
+    entityName = 'Quote'
 }
 
 // second ask for this entity the custom screen to use

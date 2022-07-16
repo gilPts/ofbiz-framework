@@ -43,7 +43,7 @@ fromPartyId = parameters.fromPartyId
 
 if (!orderHeader && orderId) {
     orderHeader = from('OrderHeader').where('orderId', orderId).queryOne()
-    if (response) { 
+    if (response) {
         if (parameters.facilityId) {
             UtilHttp.setContentDisposition(response, 'PickSheet' + orderId + '.pdf')
         } else {

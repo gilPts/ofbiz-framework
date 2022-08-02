@@ -101,7 +101,7 @@ ruleset {
     WaitOutsideOfWhileLoop
 
     // rulesets/convention.xml
-    CompileStatic
+    //CompileStatic
     ConfusingTernary
     CouldBeElvis
     CouldBeSwitchStatement
@@ -156,7 +156,7 @@ ruleset {
     DuplicateListLiteral
     DuplicateMapLiteral
     DuplicateNumberLiteral
-    DuplicateStringLiteral
+    //DuplicateStringLiteral
 
     // rulesets/enhanced.xml
     CloneWithoutCloneable
@@ -201,7 +201,7 @@ ruleset {
     ConsecutiveBlankLines
     FileEndsWithoutNewline
     Indentation
-    LineLength
+    LineLength(length: 150)
     MissingBlankLineAfterImports
     MissingBlankLineAfterPackage
     SpaceAfterCatch
@@ -399,7 +399,7 @@ ruleset {
     UnnecessaryFinalOnPrivateMethod
     UnnecessaryFloatInstantiation
     UnnecessaryGString
-    UnnecessaryGetter
+    //UnnecessaryGetter
     UnnecessaryIfStatement
     UnnecessaryInstanceOfCheck
     UnnecessaryInstantiationToGetClass
@@ -413,11 +413,11 @@ ruleset {
     UnnecessaryPackageReference
     UnnecessaryParenthesesForMethodCallWithClosure
     UnnecessaryPublicModifier
-    UnnecessaryReturnKeyword
+    //UnnecessaryReturnKeyword
     UnnecessarySafeNavigationOperator
     UnnecessarySelfAssignment
     UnnecessarySemicolon
-    UnnecessarySetter
+    //UnnecessarySetter
     UnnecessaryStringInstantiation
     UnnecessaryTernaryExpression
     UnnecessaryToString

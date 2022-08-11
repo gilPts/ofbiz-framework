@@ -89,7 +89,7 @@ returnItemTypeMap.each { value ->
 context.returnItemTypeMap = typeMap
 
 if (orderId) {
-    returnRes = runService('getReturnableItems', [orderId : orderId])
+    returnRes = runService('getReturnableItems', [orderId: orderId])
     context.returnableItems = returnRes.returnableItems
     orderHeader = from('OrderHeader').where('orderId', orderId).queryOne()
     context.orderHeader = orderHeader

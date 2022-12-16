@@ -124,7 +124,6 @@ ruleset {
     StaticFieldsBeforeInstanceFields
     StaticMethodsBeforeInstanceMethods
     TernaryCouldBeElvis
-    TrailingComma
     VariableTypeRequired
     VectorIsObsolete
 

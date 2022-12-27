@@ -371,7 +371,7 @@ ruleset {
     CyclomaticComplexity   // Requires the GMetrics jar
     MethodCount
     MethodSize
-    NestedBlockDepth
+    // TODO : need serious refactoring NestedBlockDepth
     ParameterCount
 
     // rulesets/unnecessary.xml

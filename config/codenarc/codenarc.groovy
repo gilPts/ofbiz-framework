@@ -154,8 +154,6 @@ ruleset {
     // rulesets/dry.xml
     DuplicateListLiteral
     DuplicateMapLiteral
-    DuplicateNumberLiteral
-    //DuplicateStringLiteral
 
     // rulesets/enhanced.xml
     CloneWithoutCloneable

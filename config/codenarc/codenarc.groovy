@@ -119,7 +119,7 @@ ruleset {
     NoFloat
     NoJavaUtilDate
     NoTabCharacter
-    ParameterReassignment
+//  TODO ParameterReassignment : need discussion since var modification through reference is done in 40+ groovy location.
     PublicMethodsBeforeNonPublicMethods
     StaticFieldsBeforeInstanceFields
     StaticMethodsBeforeInstanceMethods

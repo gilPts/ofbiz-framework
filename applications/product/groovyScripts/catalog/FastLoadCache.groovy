@@ -40,7 +40,7 @@ categories.close()
 messageList.add(ctimer.timerString('Finished Categories'))
 messageList.add('Loaded ' + numCategories + ' Categories')
 
-messageList.add("&nbsp;")
+messageList.add('&nbsp;')
 
 messageList.add('Loading Products...')
 UtilTimer ptimer = new UtilTimer()

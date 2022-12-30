@@ -57,7 +57,7 @@ orderId = parameters.orderId
 shipGroupSeqId = parameters.shipGroupSeqId
 
 if (orderId && !shipGroupSeqId && orderId.indexOf('/') > -1) {
-    idArray = orderId.split("\\/")
+    idArray = orderId.split('\\/')
     orderId = idArray[0]
     shipGroupSeqId = idArray[1]
 } else if (orderId && !shipGroupSeqId) {

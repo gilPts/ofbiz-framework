@@ -215,7 +215,7 @@ if (product) {
     }
     java.sql.Timestamp salesThru = product.getTimestamp('salesDiscontinuationDate')
     if (!salesThru) {
-        salesthru = "[&nbsp;]"
+        salesthru = '[&nbsp;]'
     } else if (salesThru.after(new java.util.Date())) {
         salesthru = "<span style='color: blue'>[x]</span>"
     } else {
@@ -257,7 +257,7 @@ if (product) {
                 featureHazmat.put(assocProduct.productId,
                     ((GenericValue)prodFeaturesFiltered.get(0)).getString('description'))
             } else {
-                featureHazmat.put(assocProduct.productId, "&nbsp;")
+                featureHazmat.put(assocProduct.productId, '&nbsp;')
             }
             salesThru = assocProduct.getTimestamp('salesDiscontinuationDate')
             if (!salesThru) {

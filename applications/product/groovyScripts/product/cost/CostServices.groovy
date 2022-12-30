@@ -151,7 +151,7 @@ Map getProductCost() {
                     productCost = serviceResultCU.convertedValue
                     // if currency conversion fails then a 0 cost will be returned
                     if (!productCost) {
-                        logWarning("Currency conversion failed for ProductCost lookup;" +
+                        logWarning('Currency conversion failed for ProductCost lookup;' +
                                 " unable to convert from ${priceCost.currencyUomId} to ${parameters.currencyUomId}")
                         productCost = (BigDecimal) 0
                     }
@@ -343,7 +343,7 @@ Map calculateProductCosts() {
         if (!customMethod) {
             // TODO: not supported for CostComponentCalc entries directly associated to a product
             logWarning("Unable to create cost component for cost component calc with id [${costComponentCalc.costComponentCalcId}]" +
-                    " because customMethod is not set")
+                    ' because customMethod is not set')
         } else {
             Map customMethodParameters = [productCostComponentCalc: productCostComponentCalc, costComponentCalc: costComponentCalc,
                                           currencyUomId: parameters.currencyUomId, costComponentTypePrefix: parameters.costComponentTypePrefix,

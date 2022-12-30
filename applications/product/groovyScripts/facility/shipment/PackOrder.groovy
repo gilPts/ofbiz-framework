@@ -55,7 +55,7 @@ if (shipmentId) {
 // validate order information
 if (orderId && !shipGroupSeqId && orderId.indexOf('/') > -1) {
     // split the orderID/shipGroupSeqID
-    idSplit = orderId.split("\\/")
+    idSplit = orderId.split('\\/')
     orderId = idSplit[0]
     shipGroupSeqId = idSplit[1]
 } else if (orderId && !shipGroupSeqId) {

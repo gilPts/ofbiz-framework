@@ -117,8 +117,8 @@ Map updateContent(String param, String typeId) {
 Map createRelatedUrlContentForCategory() {
     String url = parameters.url
     url = url.trim()
-    if (url.indexOf("&quot;http://&quot;") != 0) {
-        url = "&quot;http://&quot;" + url
+    if (url.indexOf('&quot;http://&quot;') != 0) {
+        url = '&quot;http://&quot;' + url
     }
     Map dataResource = [
         dataRescourceName: parameters.title,

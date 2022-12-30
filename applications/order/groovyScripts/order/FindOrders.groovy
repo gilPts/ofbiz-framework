@@ -157,7 +157,7 @@ paramList = request.getAttribute('paramList') ?: ''
 context.paramList = paramList
 
 if (paramList) {
-    paramIds = paramList.split("&amp;")
+    paramIds = paramList.split('&amp;')
     context.paramIdList = Arrays.asList(paramIds)
 }
 

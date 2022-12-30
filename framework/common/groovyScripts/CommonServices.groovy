@@ -363,7 +363,7 @@ Map createFuturePeriod() {
             // get list of CustomTypePeriod types
             applTypes = from('SystemProperty')
                 .where('systemResourceId','general', 'systemPropertyId','CustomTimePeriod.applType').queryOne()
-            List types = Arrays.asList(applTypes.systemPropertyValue.split("\\s*,\\s*"))
+            List types = Arrays.asList(applTypes.systemPropertyValue.split('\\s*,\\s*'))
             types.each{periodTypeId ->
                 Calendar periodCal = Calendar.getInstance();
                 systemPropertyId = 'CustomTimePeriod.' + periodTypeId + '.intermediate'

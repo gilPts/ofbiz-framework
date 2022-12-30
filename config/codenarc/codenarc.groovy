@@ -333,7 +333,6 @@ ruleset {
     ClassNameSameAsFilename
     ClassNameSameAsSuperclass
     ConfusingMethodName
-    FactoryMethodName
     FieldName
     InterfaceName
     InterfaceNameSameAsSuperInterface

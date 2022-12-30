@@ -108,7 +108,7 @@ ruleset {
     FieldTypeRequired
     HashtableIsObsolete
     IfStatementCouldBeTernary
-    ImplicitClosureParameter
+//  TODO :  ImplicitClosureParameter
     InvertedCondition
     InvertedIfElse
     LongLiteralWithLowerCaseL

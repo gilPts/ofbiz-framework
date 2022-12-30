@@ -71,7 +71,6 @@ if (partyId) {
     }
 }
 
-
 returnTypes = from('ReturnType').orderBy('sequenceId').queryList()
 context.returnTypes = returnTypes
 

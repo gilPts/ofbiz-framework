@@ -164,7 +164,7 @@ ruleset {
     // rulesets/exceptions.xml
     CatchArrayIndexOutOfBoundsException
     CatchError
-    CatchException
+    // TODO : need to discuss about execption CatchException for scripting (allow global Exception catching)
     CatchIllegalMonitorStateException
     CatchIndexOutOfBoundsException
     CatchNullPointerException

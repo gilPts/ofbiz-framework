@@ -151,10 +151,6 @@ ruleset {
     StatelessSingleton
     ToStringReturnsNull
 
-    // rulesets/dry.xml
-    DuplicateListLiteral
-    DuplicateMapLiteral
-
     // rulesets/enhanced.xml
     CloneWithoutCloneable
     JUnitAssertEqualsConstantActualValue

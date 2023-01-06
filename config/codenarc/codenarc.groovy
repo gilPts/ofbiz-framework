@@ -140,7 +140,6 @@ ruleset {
     EmptyMethodInAbstractClass
     FinalClassWithProtectedMember
     ImplementationAsType
-    Instanceof
     LocaleSetDefault
     NestedForLoop
     PrivateFieldCouldBeFinal

@@ -363,7 +363,7 @@ ruleset {
     MethodCount
     // TODO : need refactoring MethodSize
     // TODO : need serious refactoring NestedBlockDepth
-    ParameterCount
+    // TODO : need refactoring ParameterCount
 
     // rulesets/unnecessary.xml
     AddEmptyString

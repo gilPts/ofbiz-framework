@@ -49,7 +49,7 @@ Map getRelatedCategories() {
             subCategories << parent.getRelatedOne('CurrentProductCategory', true)
         }
         if (subCategories) {
-            Set distinctCategories = categories ? [*categories] as Set : [] as Set
+            Set distinctCategories = categories ? [*categories] as Set : [] as Set // codenarc-disable SpaceAroundMapEntryColon
             Map relatedCategoryContext = [categories: subCategories]
             for (Map subCategory: subCategories) {
                 relatedCategoryContext.parentProductCategoryId = subCategory.productCategoryId

@@ -45,5 +45,5 @@ def createFacilityLocation() {
 
     newEntity.locationSeqId = locationSeqId
     newEntity.create()
-    return success(locationSeqId : newEntity.locationSeqId)
+    return success(locationSeqId: newEntity.locationSeqId)
 }

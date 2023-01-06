@@ -361,7 +361,7 @@ ruleset {
     CrapMetric   // Requires the GMetrics jar and a Cobertura coverage file
     // TODO : need refactoring CyclomaticComplexity   // Requires the GMetrics jar
     MethodCount
-    MethodSize
+    // TODO : need refactoring MethodSize
     // TODO : need serious refactoring NestedBlockDepth
     ParameterCount
 

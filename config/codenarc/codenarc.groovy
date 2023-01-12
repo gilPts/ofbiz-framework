@@ -56,7 +56,6 @@ ruleset {
     WhileStatementBraces
 
     // rulesets/comments.xml
-    ClassJavadoc
     JavadocConsecutiveEmptyLines
     JavadocEmptyAuthorTag
     JavadocEmptyExceptionTag

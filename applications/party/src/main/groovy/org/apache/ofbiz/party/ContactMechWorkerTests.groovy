@@ -132,7 +132,7 @@ class ContactMechWorkerTests extends OFBizTestCase {
                     foundOrderEmail = orderContactMechValueMap.contactMechPurposeType.contactMechPurposeTypeId == 'ORDER_EMAIL'
                     break
                 default:
-                    fail()
+                    fail('Unknown contact mech found')
                     break
             }
         }
@@ -171,7 +171,7 @@ class ContactMechWorkerTests extends OFBizTestCase {
                     foundPhone = true
                     break
                 default:
-                    fail()
+                    fail('Unknown contact mech found')
                     break
             }
         }

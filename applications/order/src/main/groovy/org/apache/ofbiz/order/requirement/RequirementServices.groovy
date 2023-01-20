@@ -32,7 +32,9 @@ import java.sql.Timestamp
 def deleteRequirementAndRelated() {
     GenericValue requirement = from("Requirement").where(parameters).queryOne()
     if (requirement) {
+        requirement.removeRelated("RequirementAttribute")
         requirement.removeRelated("RequirementRole")
+        requirement.removeRelated("RequirementStatus")
         requirement.removeRelated("RequirementCustRequest")
         requirement.remove()
         return success()

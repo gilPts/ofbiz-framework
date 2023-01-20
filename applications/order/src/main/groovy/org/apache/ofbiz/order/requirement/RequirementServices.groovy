@@ -60,7 +60,7 @@ def autoAssignRequirementToSupplier() {
                 supplierProductsQuery.filterByDate((Timestamp) requirement.requiredByDate, "availableFromDate", "availableThruDate")
             }
             GenericValue supplierProduct = supplierProductsQuery.queryFirst()
-            if (supplierProduct.partyId) {
+            if (supplierProduct?.partyId) {
                 delegator.createOrStore("RequirementRole", [requirementId: requirement.requirementId,
                                                             partyId      : supplierProduct.partyId,
                                                             roleTypeId   : "SUPPLIER",

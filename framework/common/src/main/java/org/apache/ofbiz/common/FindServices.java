@@ -22,6 +22,7 @@ import static org.apache.ofbiz.base.util.UtilGenerics.checkCollection;
 import static org.apache.ofbiz.base.util.UtilGenerics.checkMap;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.ObjectType;
@@ -50,6 +52,7 @@ import org.apache.ofbiz.entity.condition.EntityComparisonOperator;
 import org.apache.ofbiz.entity.condition.EntityCondition;
 import org.apache.ofbiz.entity.condition.EntityConditionList;
 import org.apache.ofbiz.entity.condition.EntityFunction;
+import org.apache.ofbiz.entity.condition.EntityJoinOperator;
 import org.apache.ofbiz.entity.condition.EntityOperator;
 import org.apache.ofbiz.entity.model.DynamicViewEntity;
 import org.apache.ofbiz.entity.model.ModelEntity;
@@ -73,6 +76,7 @@ public class FindServices {
     private static final String MODULE = FindServices.class.getName();
     private static final String RESOURCE = "CommonUiLabels";
     public static final Map<String, EntityComparisonOperator<?, ?>> ENTITY_OPERATORS;
+    public static final List<String> PERFORMFIND_SEARCH_SUFFIXES = List.of("_ic", "_op", "_grp", "_value");
 
     static {
         ENTITY_OPERATORS = new LinkedHashMap<>();
@@ -166,7 +170,8 @@ public class FindServices {
                         fieldPair = suffix;
                         fieldMode = "value";
                     } else {
-                        // if it does not start with fld, assume it is an op or the 'ignore case' (ic) field
+                        // if it does not start with fld,
+                        // assume it is an op or the 'ignore case' (ic) field
                         fieldPair = "fld0";
                         fieldMode = suffix;
                     }
@@ -233,44 +238,17 @@ public class FindServices {
         }
         List<EntityCondition> result = new LinkedList<>();
         for (Map.Entry<String, ? extends Object> entry : parameters.entrySet()) {
-            String currentGroup = null;
             String parameterName = entry.getKey();
             if (processed.contains(parameterName)) {
                 continue;
             }
             keys.clear();
-            String fieldName = parameterName;
-            Object fieldValue = null;
-            String operation = null;
-            boolean ignoreCase = false;
-            if (parameterName.endsWith("_ic") || parameterName.endsWith("_op")) {
-                fieldName = parameterName.substring(0, parameterName.length() - 3);
-            } else if (parameterName.endsWith("_value")) {
-                fieldName = parameterName.substring(0, parameterName.length() - 6);
-            }
+            String fieldName = extractFieldNameIfSuffix(parameterName, PERFORMFIND_SEARCH_SUFFIXES);
+            String currentGroup = (String) getValueFromParametersWithSuffix(fieldName, parameters, "_grp", keys);
+            boolean ignoreCase = "Y".equals(getValueFromParametersWithSuffix(fieldName, parameters, "_ic", keys));
+            String operation = (String) getValueFromParametersWithSuffix(fieldName, parameters, "_op", keys);
+            Object fieldValue = getValueFromParametersWithSuffix(fieldName, parameters, "_value", keys);
 
-            String key = fieldName.concat("_grp");
-            if (parameters.containsKey(key)) {
-                if (parameters.containsKey(key)) {
-                    keys.add(key);
-                }
-                currentGroup = (String) parameters.get(key);
-            }
-            key = fieldName.concat("_ic");
-            if (parameters.containsKey(key)) {
-                keys.add(key);
-                ignoreCase = "Y".equals(parameters.get(key));
-            }
-            key = fieldName.concat("_op");
-            if (parameters.containsKey(key)) {
-                keys.add(key);
-                operation = (String) parameters.get(key);
-            }
-            key = fieldName.concat("_value");
-            if (parameters.containsKey(key)) {
-                keys.add(key);
-                fieldValue = parameters.get(key);
-            }
             if (fieldName.endsWith("_fld0") || fieldName.endsWith("_fld1")) {
                 if (parameters.containsKey(fieldName)) {
                     keys.add(fieldName);
@@ -291,29 +269,41 @@ public class FindServices {
             if (ObjectType.isEmpty(fieldValue) && !"empty".equals(operation)) {
                 continue;
             }
-            if (UtilValidate.isNotEmpty(currentGroup)) {
-                List<EntityCondition> groupedConditions = new LinkedList<>();
-                if (savedGroups.get(currentGroup) != null) {
-                    groupedConditions.addAll(savedGroups.get(currentGroup));
-                }
-                groupedConditions.add(createSingleCondition(modelField, operation, fieldValue, ignoreCase, delegator, context));
-                savedGroups.put(currentGroup, groupedConditions);
-            } else {
-                result.add(createSingleCondition(modelField, operation, fieldValue, ignoreCase, delegator, context));
-            }
 
-            for (String mapKey : keys) {
-                queryStringMap.put(mapKey, parameters.get(mapKey));
+            EntityCondition cond = createSingleCondition(modelField, operation, fieldValue, ignoreCase, delegator, context);
+            if (UtilValidate.isEmpty(currentGroup)) {
+                result.add(cond);
+            } else {
+                savedGroups.computeIfAbsent(currentGroup, k -> new ArrayList<>())
+                        .add(cond);
             }
+            keys.forEach(mapKey -> queryStringMap.put(mapKey, parameters.get(mapKey)));
         }
-        //Add OR-grouped conditions
-        List<EntityCondition> orConditions = new LinkedList<>();
-        for (String groupedConditions : savedGroups.keySet()) {
-            orConditions.add(EntityCondition.makeCondition(savedGroups.get(groupedConditions)));
+        List<EntityCondition> orConditions = savedGroups.keySet().stream()
+                .map(groupName -> EntityCondition.makeCondition(savedGroups.get(groupName)))
+                .collect(Collectors.toList());
+
+        if (UtilValidate.isNotEmpty(orConditions)) {
+            result.add(EntityCondition.makeCondition(orConditions, EntityOperator.OR));
         }
-        if (!orConditions.isEmpty()) result.add(EntityCondition.makeCondition(orConditions, EntityOperator.OR));
 
         return result;
+    }
+
+    private static Object getValueFromParametersWithSuffix(String fieldName, Map<String, ?> parameters, String suffix, Set<String> keys) {
+        String key = fieldName.concat(suffix);
+        if (parameters.containsKey(key)) {
+            keys.add(key);
+            return parameters.get(key);
+        }
+        return null;
+    }
+
+    private static String extractFieldNameIfSuffix(String parameterName, List<String> suffixes) {
+        return suffixes.stream()
+                .filter(parameterName::endsWith)
+                .map(suffix -> parameterName.substring(0, parameterName.length() - suffix.length()))
+                .findFirst().orElse(parameterName);
     }
 
     /**

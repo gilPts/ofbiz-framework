@@ -221,17 +221,21 @@ public class FindServices {
      * @param context
      * @return returns an EntityCondition list
      */
-    public static List<EntityCondition> createConditionList(Map<String, ? extends Object> parameters, List<ModelField> fieldList,
-                                                            Map<String, Object> queryStringMap, Delegator delegator, Map<String, ?> context) {
+    public static List<EntityCondition> createConditionList(Map<String, ?> parameters, List<ModelField> fieldList, Map<String, Object> queryStringMap,
+                                                            Delegator delegator, Map<String, ?> context, String groupConditionOperator) {
         Set<String> processed = new LinkedHashSet<>();
         Set<String> keys = new LinkedHashSet<>();
         Map<String, ModelField> fieldMap = new LinkedHashMap<>();
-        /**
+        /*
          * When inputFields contains several xxxx_grp, yyyy_grp ... values,
-         * Corresponding conditions will grouped by an {@link EntityOperator.AND} then all added to final
+         * Corresponding conditions will group depending on {@param groupConditionOperator}
+         * Default behaviour is grouping by an {@link EntityOperator.AND} then all added to final
          * condition grouped by an {@link EntityOperator.OR}
-         * That will allow union of search criteria, instead of default intersection.
+         * "OR_AND" behaviour is grouping by an {@link EntityOperator.OR} then all added to final
+         * condition grouped by an {@link EntityOperator.AND}
          */
+        EntityJoinOperator operatorInsideGroup = "OR_AND".equals(groupConditionOperator) ? EntityOperator.OR : EntityOperator.AND;
+        EntityJoinOperator operatorBetweenGroups = "OR_AND".equals(groupConditionOperator) ? EntityOperator.AND : EntityOperator.OR;
         Map<String, List<EntityCondition>> savedGroups = new LinkedHashMap<>();
         for (ModelField modelField : fieldList) {
             fieldMap.put(modelField.getName(), modelField);
@@ -280,11 +284,11 @@ public class FindServices {
             keys.forEach(mapKey -> queryStringMap.put(mapKey, parameters.get(mapKey)));
         }
         List<EntityCondition> orConditions = savedGroups.keySet().stream()
-                .map(groupName -> EntityCondition.makeCondition(savedGroups.get(groupName)))
+                .map(groupName -> EntityCondition.makeCondition(savedGroups.get(groupName), operatorInsideGroup))
                 .collect(Collectors.toList());
 
         if (UtilValidate.isNotEmpty(orConditions)) {
-            result.add(EntityCondition.makeCondition(orConditions, EntityOperator.OR));
+            result.add(EntityCondition.makeCondition(orConditions, operatorBetweenGroups));
         }
 
         return result;
@@ -495,6 +499,7 @@ public class FindServices {
         String entityName = (String) context.get("entityName");
         DynamicViewEntity dynamicViewEntity = (DynamicViewEntity) context.get("dynamicViewEntity");
         String orderBy = (String) context.get("orderBy");
+        String groupConditionOperator = (String) context.get("groupConditionOperator");
         Map<String, ?> inputFields = checkMap(context.get("inputFields"), String.class, Object.class); // Input
         String noConditionFind = (String) context.get("noConditionFind");
         String distinct = (String) context.get("distinct");
@@ -539,7 +544,7 @@ public class FindServices {
         Map<String, Object> prepareResult = null;
         try {
             prepareResult = dispatcher.runSync("prepareFind", UtilMisc.toMap("entityName", entityName, "orderBy", orderBy,
-                                               "dynamicViewEntity", dynamicViewEntity,
+                                               "dynamicViewEntity", dynamicViewEntity, "groupConditionOperator", groupConditionOperator,
                                                "inputFields", inputFields, "filterByDate", filterByDate, "noConditionFind", noConditionFind,
                                                "filterByDateValue", filterByDateValue, "userLogin", userLogin, "fromDateName", fromDateName,
                     "thruDateName", thruDateName,
@@ -588,6 +593,7 @@ public class FindServices {
         DynamicViewEntity dynamicViewEntity = (DynamicViewEntity) context.get("dynamicViewEntity");
         Delegator delegator = dctx.getDelegator();
         String orderBy = (String) context.get("orderBy");
+        String groupConditionOperator = (String) context.get("groupConditionOperator");
         Map<String, ?> inputFields = checkMap(context.get("inputFields"), String.class, Object.class); // Input
         String noConditionFind = (String) context.get("noConditionFind");
         if (UtilValidate.isEmpty(noConditionFind)) {
@@ -618,7 +624,8 @@ public class FindServices {
         } else {
             modelEntity = delegator.getModelEntity(entityName);
         }
-        List<EntityCondition> tmpList = createConditionList(inputFields, modelEntity.getFieldsUnmodifiable(), queryStringMap, delegator, context);
+        List<EntityCondition> tmpList = createConditionList(inputFields, modelEntity.getFieldsUnmodifiable(),
+                queryStringMap, delegator, context, groupConditionOperator);
 
         /* the filter by date condition should only be added when there are other conditions or when
          * the user has specified a noConditionFind.  Otherwise, specifying filterByDate will become

@@ -124,7 +124,7 @@ public class PerformFindTests extends OFBizTestCase {
         performFindConditionDistinct();
         performFindFilterByDate();
         performFindGroup();
-        //performFindGroupOrAnd();
+        performFindGroupOrAnd();
         performFindDateFindAndIgnoreCase();
         performFindFilterByDateWithDedicateDateField();
     }
@@ -286,7 +286,7 @@ public class PerformFindTests extends OFBizTestCase {
      * and that are type `PERFOMFINDTEST`
      * and that size is `1`.
      */
-    /*private void performFindGroupOrAnd() throws Exception {
+    private void performFindGroupOrAnd() throws Exception {
         prepareData();
         LocalDispatcher dispatcher = getDispatcher();
         GenericValue userLogin = getUserLogin("system");
@@ -302,7 +302,7 @@ public class PerformFindTests extends OFBizTestCase {
         assertTrue(ServiceUtil.isSuccess(result));
         List<GenericValue> foundElements = getCompleteList(result);
         assertEquals("performFind search with group condition", 3, foundElements.size());
-    }*/
+    }
 
     private void performFindDateFindAndIgnoreCase() throws Exception {
         LocalDispatcher dispatcher = getDispatcher();

@@ -18,6 +18,8 @@
  */
 package org.apache.ofbiz.security;
 
+import java.util.regex.Pattern;
+import org.apache.ofbiz.base.util.UtilCodec;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -27,6 +29,7 @@ import java.util.List;
 import org.junit.Test;
 
 public class SecurityUtilTest {
+
     @Test
     public void basicAdminPermissionTesting() {
         List<String> adminPermissions = Arrays.asList("PARTYMGR", "EXAMPLE", "ACCTG_PREF");
@@ -53,4 +56,45 @@ public class SecurityUtilTest {
         assertFalse(SecurityUtil.checkMultiLevelAdminPermissionValidity(adminPermissions, "HOTDEP_PARTYMGR_ADMIN"));
     }
 
+    @Test
+    public void isDeniedWebShell() {
+        Pattern testDeniedWebShellTokens = SecuredUpload.computeDeniedWebShellTokensPattern(List.of("suspecttoken", "allowedtoken"));
+        List.of(" suspecttoken.",
+                        " suspectToken.",
+                        " SuspectToken.",
+                        " SUSPECTTOKEN.",
+                        " suspectToken.",
+                        "<suspectToken ",
+                        "<suspectToken:",
+                        "< suspectToken :",
+                        "<%@ suspectToken ",
+                        "<?suspectToken ",
+                        " suspectToken(",
+                        "%suspectToken,",
+                        "/suspectToken*",
+                        "\"suspectToken\"",
+                        "*suspectToken|",
+                        "+suspectToken|",
+                        "=suspectToken|",
+                        "|suspectToken ")
+                .forEach(token -> {
+                    String encodedToken = UtilCodec.getEncoder("url").encode(token);
+                    assertTrue("failed to stop '" + token + "' encoded as '" + encodedToken + " with " + testDeniedWebShellTokens,
+                            SecuredUpload.containsDeniedWebShellToken(List.of(encodedToken), List.of(), testDeniedWebShellTokens));
+                });
+    }
+
+    @Test
+    public void isAllowedWebShell() {
+        Pattern testDeniedWebShellTokens = SecuredUpload.computeDeniedWebShellTokensPattern(List.of("suspecttoken", "allowedtoken"));
+        List.of(" suspecttokena ",
+                        "suspectToken",
+                        " allowedToken(",
+                        " allowedtoken(")
+                .forEach(token -> {
+                    String encodedToken = UtilCodec.getEncoder("url").encode(token);
+                    assertFalse("failed to allow '" + token + "' encoded as '" + encodedToken + " with " + testDeniedWebShellTokens,
+                            SecuredUpload.containsDeniedWebShellToken(List.of(encodedToken), List.of("allowedtoken"), testDeniedWebShellTokens));
+                });
+    }
 }

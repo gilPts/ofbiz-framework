@@ -47,6 +47,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
@@ -110,7 +112,8 @@ public class SecuredUpload {
 
     private static final String MODULE = SecuredUpload.class.getName();
     private static final List<String> DENIEDFILEEXTENSIONS = getDeniedFileExtensions();
-    private static final List<String> DENIEDWEBSHELLTOKENS = getDeniedWebShellTokens();
+    private static final Pattern DENIEDWEBSHELLTOKENS = computeDeniedWebShellTokens();
+    private static final List<String> ALLOWEDWEBSHELLTOKENS = computeAllowedWebShellTokens();
     private static final Integer MAXLINELENGTH = UtilProperties.getPropertyAsInteger("security", "maxLineLength", 0);
     private static final Boolean ALLOWSTRINGCONCATENATIONINUPLOADEDFILES =
             UtilProperties.getPropertyAsBoolean("security", "allowStringConcatenationInUploadedFiles", false);
@@ -125,28 +128,31 @@ public class SecuredUpload {
     // check there is no web shell in the uploaded file
     // A file containing a reverse shell will be rejected.
     public static boolean isValidText(String content, List<String> allowed) throws IOException {
-        return isValidText(content, allowed, false);
-    }
-
-    public static boolean isValidText(String content, List<String> allowed, boolean isQuery) throws IOException {
         if (content == null) {
             return false;
         }
-        if (!isQuery) {
-            String contentWithoutSpaces = content.replaceAll(" ", "");
-            if ((contentWithoutSpaces.contains("\"+\"") || contentWithoutSpaces.contains("'+'"))
-                    && !ALLOWSTRINGCONCATENATIONINUPLOADEDFILES) {
-                Debug.logInfo("The uploaded file contains a string concatenation. It can't be uploaded for security reason", MODULE);
-                return false;
-            }
-        } else {
-            // Check the query string is safe, notably no reverse shell
-            List<String> queryParameters = StringUtil.split(content, "&");
-            return DENIEDWEBSHELLTOKENS.stream().allMatch(token -> isValid(queryParameters, token.toLowerCase(), allowed));
+        String contentWithoutSpaces = StringUtil.removeSpaces(content);
+        if ((contentWithoutSpaces.contains("\"+\"") || contentWithoutSpaces.contains("'+'"))
+                && !ALLOWSTRINGCONCATENATIONINUPLOADEDFILES) {
+            Debug.logInfo("The uploaded file contains a string concatenation. It can't be uploaded for security reason", MODULE);
+            return false;
         }
 
         // Check there is no web shell in an uploaded file
-        return DENIEDWEBSHELLTOKENS.stream().allMatch(token -> isValid(content.toLowerCase(), token.toLowerCase(), allowed));
+        return containsDeniedWebShellToken(List.of(content), allowed, getDeniedWebShellTokens());
+    }
+
+    public static boolean isValidQuery(String content, List<String> allowed) throws IOException {
+        if (content == null) {
+            return false;
+        }
+        // Check the query string is safe, notably no reverse shell
+        return !containsDeniedWebShellToken(StringUtil.split(content, "&"), allowed, getDeniedWebShellTokens());
+    }
+
+    public static boolean containsDeniedWebShellToken(List<String> contents, List<String> allowed, Pattern deniedWebShellTokens) {
+        return contents.stream().anyMatch(token -> deniedWebShellTokens.matcher(token.toLowerCase()).find()
+                && !isAllowed(token.toLowerCase(), allowed));
     }
 
     public static boolean isValidFileName(String fileToCheck, Delegator delegator) throws IOException {
@@ -245,7 +251,7 @@ public class SecuredUpload {
      */
     public static boolean isValidFile(String fileToCheck, String fileType, Delegator delegator) throws IOException, ImageReadException {
         // Allow all
-        if (("true".equalsIgnoreCase(EntityUtilProperties.getPropertyValue("security", "allowAllUploads", delegator)))) {
+        if ("true".equalsIgnoreCase(EntityUtilProperties.getPropertyValue("security", "allowAllUploads", delegator))) {
             return true;
         }
 
@@ -850,32 +856,25 @@ public class SecuredUpload {
         return isValidText(content, allowed);
     }
 
-    // Check there is no web shell
-    private static boolean isValid(String content, String string, List<String> allowed) {
-        boolean isOK = !content.contains(string) || allowed.contains(string);
-        if (!isOK) {
-            Debug.logInfo("The uploaded file contains the string '" + string + "'. It can't be uploaded for security reason", MODULE);
+    private static boolean isAllowed(String content, List<String> allowed) {
+        List<String> allowedContents;
+        if (allowed != null) {
+            allowedContents = new ArrayList<>(allowed);
+            allowedContents.addAll(ALLOWEDWEBSHELLTOKENS);
+        } else {
+            allowedContents = ALLOWEDWEBSHELLTOKENS;
         }
-        return isOK;
-    }
-
-    // Check there is no reverse shell in query string
-    private static boolean isValid(List<String> queryParameters, String string, List<String> allowed) {
-        boolean isOK = true;
-
-        for (String parameter : queryParameters) {
-            if (!parameter.contains(string)
-                    || allowed.contains(HashCrypt.cryptBytes("SHA", "OFBiz", parameter.toLowerCase().getBytes(StandardCharsets.UTF_8)))) {
-                continue;
-            } else {
-                isOK = false;
-                break;
+        if (UtilValidate.isEmpty(allowedContents)) {
+            return false;
+        }
+        for (String allowContent : allowedContents) {
+            if ((allowContent.startsWith("$SHA")
+                    && allowContent.equals(HashCrypt.cryptBytes("SHA", "OFBiz", content.toLowerCase().getBytes(StandardCharsets.UTF_8))))
+                    || content.trim().toLowerCase().contains(allowContent)) {
+                return true;
             }
         }
-        if (!isOK) {
-            Debug.logInfo("The HTTP query string contains the string '" + string + "'. It can't be uploaded for security reason", MODULE);
-        }
-        return isOK;
+        return false;
     }
 
     private static void deleteBadFile(String fileToCheck) {
@@ -891,9 +890,27 @@ public class SecuredUpload {
         return UtilValidate.isNotEmpty(deniedExtensions) ? StringUtil.split(deniedExtensions, ",") : new ArrayList<>();
     }
 
-    private static List<String> getDeniedWebShellTokens() {
-        String deniedTokens = UtilProperties.getPropertyValue("security", "deniedWebShellTokens");
-        return UtilValidate.isNotEmpty(deniedTokens) ? StringUtil.split(deniedTokens, ",") : new ArrayList<>();
+    public static Pattern getDeniedWebShellTokens() {
+        return DENIEDWEBSHELLTOKENS;
+    }
+
+    private static Pattern computeDeniedWebShellTokens() {
+        return computeDeniedWebShellTokensPattern(
+                StringUtil.split(UtilProperties.getPropertyValue("security", "deniedWebShellTokens").toLowerCase(), ","));
+    }
+    public static Pattern computeDeniedWebShellTokensPattern(List<String> tokens) {
+        return Pattern.compile(tokens.stream()
+                .map(token -> ".*(%.{2,5}|[^\\w])" + token + "[^\\w].*")
+                .collect(Collectors.joining("|")));
+    }
+
+    private static List<String> getAllowedTokens() {
+        return ALLOWEDWEBSHELLTOKENS;
+    }
+
+    private static List<String> computeAllowedWebShellTokens() {
+        String allowedTokens = UtilProperties.getPropertyValue("security", "allowedTokens");
+        return UtilValidate.isNotEmpty(allowedTokens) ? StringUtil.split(allowedTokens, ",") : List.of();
     }
 
     private static boolean checkMaxLinesLength(String fileToCheck) {
